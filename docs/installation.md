@@ -43,10 +43,10 @@ reconciliação, a alocação, o aporte ou os testes.
 
 | Harness | Caminho típico |
 |---|---|
-| **Claude Code / setup atual deste repo** | `~/.claude/skills/invest-portfolio-review/` ou `.claude/skills/` no projeto |
+| **Claude Code** | `~/.claude/skills/invest-portfolio-review/` ou `.claude/skills/` no projeto |
 | **Cursor** | `~/.cursor/skills/invest-portfolio-review/` ou `.cursor/skills/` no projeto |
 | **Claude apps** | ZIP da pasta, importado em Settings → Capabilities → Skills, se disponível no plano |
-| **OpenCode** | diretório de skills configurado no setup; neste ambiente, `~/.claude/skills/` é usado |
+| **OpenCode** | array `skills` no `opencode.jsonc` (recomendado) ou `~/.config/opencode/skills/invest-portfolio-review/` |
 | **Outros harnesses** | diretório de skills/instruções configurado; se não houver suporte a skills, use o `SKILL.md` como prompt e exponha os scripts como ferramentas |
 
 O nome da pasta deve ser igual ao `name` do frontmatter:
@@ -57,14 +57,58 @@ name: invest-portfolio-review
 ---
 ```
 
-## 4. Instalação global x por projeto
+## 4. Instalação somente no OpenCode
+
+Para deixar a skill e o agente disponíveis **apenas no OpenCode**, sem tocar em `~/.claude/skills`,
+`~/.cursor/skills` ou outros harnesses, use o array `skills` do arquivo global:
+
+`~/.config/opencode/opencode.jsonc`
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Skills e o orquestrador Carteira são carregados direto do repositório pessoal.
+  "skills": [
+    "~/Personal/my-agents-skills/skills",
+    "~/Personal/my-agents-skills/agents",
+  ],
+}
+```
+
+O que cada entrada faz:
+
+- `.../skills` expõe a skill `invest-portfolio-review`;
+- `.../agents` expõe `carteira` como skill de orquestração;
+- o OpenCode lê direto do repo, então `git pull` atualiza o que ele carrega;
+- nada é copiado para Claude Code, Cursor ou outros harnesses.
+
+O caminho com `~/` é expandido pelo OpenCode. Caminhos relativos resolvem a partir do diretório de
+trabalho ativo, não do arquivo de configuração; por isso, prefira `~/` ou caminho absoluto.
+
+Depois de editar:
+
+```bash
+opencode reload
+```
+
+No OpenCode, carregue explicitamente com `@`:
+
+```text
+@invest-portfolio-review avalie minha alocação
+@carteira como está minha carteira?
+```
+
+O `carteira` é carregado como skill-style. Para ele aparecer no seletor de agentes do OpenCode, veja a
+seção 7.
+
+## 5. Instalação global x por projeto
 
 ### Global
 
 Vale para todos os projetos do usuário.
 
 ```bash
-# Claude Code / OpenCode neste setup
+# Claude Code
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/invest-portfolio-review" ~/.claude/skills/invest-portfolio-review
 
@@ -84,7 +128,7 @@ ln -s "$(pwd)/skills/invest-portfolio-review" .claude/skills/invest-portfolio-re
 
 Para Cursor, troque `.claude/skills` por `.cursor/skills`.
 
-## 5. Symlink x cópia
+## 6. Symlink x cópia
 
 | Estratégia | Vantagem | Cuidado |
 |---|---|---|
@@ -103,9 +147,13 @@ Se preferir copiar:
 cp -R skills/invest-portfolio-review ~/.claude/skills/
 ```
 
-## 6. Instalando o agente `carteira`
+## 7. Instalando o agente `carteira`
 
-O agente depende da skill. O ideal é deixar os dois como irmãos no diretório de skills:
+No OpenCode-only, o array `skills` da seção 4 já expõe `carteira` como skill de orquestração. Não é
+preciso criar link nem copiar nada.
+
+Nos outros harnesses, o agente depende da skill. O ideal é deixar os dois como irmãos no diretório de
+skills:
 
 ```bash
 ln -s "$(pwd)/skills/invest-portfolio-review" ~/.claude/skills/invest-portfolio-review
@@ -118,7 +166,27 @@ carregar skills por nome, ele pode chamar `invest-portfolio-review` diretamente.
 Se o harness tiver um diretório separado para agentes, instale o agente lá e ajuste a dependência para
 o nome da skill ou para o caminho correto.
 
-## 7. Como testar a instalação
+### Agente nativo do OpenCode (opcional)
+
+Se você quiser o `carteira` no seletor de agentes do OpenCode, crie
+`~/.config/opencode/agents/carteira.md` com um system prompt fino que carregue as skills:
+
+```md
+---
+description: Orquestra a skill invest-portfolio-review para a carteira pessoal
+mode: primary
+---
+
+Você é o agente Carteira. Carregue a skill `carteira` e siga as instruções dela. Ela carrega
+`invest-portfolio-review` para ingestão, reconciliação, alocação, aporte e decisão de compra.
+
+Não recalcule alvos, bandas ou tributos. Não peça JSON ao investidor. Não é recomendação regulada.
+```
+
+O arquivo nativo é só um adaptador: a fonte de verdade continua em `agents/carteira/SKILL.md` e
+`skills/invest-portfolio-review/`.
+
+## 8. Como testar a instalação
 
 ```bash
 cd ~/.claude/skills/invest-portfolio-review
@@ -138,7 +206,7 @@ Com o agente:
 Agente Carteira, como está minha alocação?
 ```
 
-## 8. Empacotar para upload
+## 9. Empacotar para upload
 
 Se o harness pedir ZIP:
 
@@ -158,7 +226,7 @@ zip -r ../../invest-portfolio-review.zip . \
 
 Nunca inclua `state/` com dados reais no ZIP.
 
-## 9. Atualização
+## 10. Atualização
 
 ### Com symlink
 
@@ -182,7 +250,7 @@ cd ~/.claude/skills/invest-portfolio-review
 python3 -m unittest discover -s tests
 ```
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
@@ -193,7 +261,7 @@ python3 -m unittest discover -s tests
 | Cálculo não bate | Dados parciais ou bruto x líquido | Reconcilie antes de concluir; a skill não deve gravar com divergência |
 | Agente não acha a skill | Dependência não instalada ou caminho mudou | Instale a skill como irmã ou ajuste a referência para o nome |
 
-## 11. Segurança e privacidade
+## 12. Segurança e privacidade
 
 - A skill executa scripts Python locais. Revise o código antes de instalar em harness com permissão de
   shell.
@@ -202,11 +270,14 @@ python3 -m unittest discover -s tests
 - O agente mantém apenas preferências em `agents/carteira/state/agent-memory.md`; a carteira fica no
   estado da skill.
 
-## 12. Resumo
+## 13. Resumo
 
-1. Copie ou symlinka a pasta `skills/invest-portfolio-review` para o diretório de skills do harness.
-2. Mantenha a estrutura interna (`references/`, `scripts/`, `assets/`, `templates/`).
-3. Garanta Python 3.10+ e `state/` gravável.
-4. Instale o agente `carteira` junto, se quiser a orquestração.
-5. Teste com `python3 -m unittest discover -s tests`.
-6. Se o harness não suportar skills, use o `SKILL.md` como prompt e os scripts como ferramentas.
+1. No OpenCode-only, adicione `~/Personal/my-agents-skills/skills` e `.../agents` ao array `skills` do
+   `opencode.jsonc`.
+2. Nos outros harnesses, copie ou symlinka a pasta `skills/invest-portfolio-review` para o diretório de
+   skills.
+3. Mantenha a estrutura interna (`references/`, `scripts/`, `assets/`, `templates/`).
+4. Garanta Python 3.10+ e `state/` gravável.
+5. Instale o agente `carteira` junto, se quiser a orquestração.
+6. Teste com `python3 -m unittest discover -s tests`.
+7. Se o harness não suportar skills, use o `SKILL.md` como prompt e os scripts como ferramentas.
