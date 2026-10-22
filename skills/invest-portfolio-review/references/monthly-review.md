@@ -57,10 +57,18 @@ Não pular etapas por falta de dado: registrar "não informado" e perguntar.
 ## Passo 5 — Teste estrutural
 
 1. Rodar `python3 scripts/structural_drift.py state/portfolio.json --amount [aporte]`.
-2. Se algum sleeve acima da banda levar mais de 36 meses para voltar à banda só por diluição:
+2. Se o sleeve acima da banda for **K1 (renda fixa)**, o teste de diluição é pessimista: rodar também
+   `python3 scripts/maturity_ladder.py state/portfolio.json --amount [aporte] --months 24` e ler a
+   escada de vencimentos. Vencimento tira dinheiro do sleeve sem venda, sem IR e sem spread.
+3. Comparar as duas leituras e dizer qual vale: "só diluição" ou "diluição + vencimentos". Se elas
+   divergirem, a segunda manda.
+4. Se algum sleeve acima da banda levar mais de 36 meses para voltar à banda mesmo com vencimentos:
    declarar **desvio estrutural** e colocar na mesa a decisão explícita: aceitar, rever a política
-   ou vender parte (com custo fiscal e de liquidez calculado).
-3. Nunca recomendar "continue aportando" quando a aritmética mostra que o fluxo não corrige.
+   ou vender parte (com custo fiscal e de liquidez calculado). Se a venda entrar na mesa, usar
+   `--months [horizonte]` para dimensionar o valor exato — vender a mais força recomprar depois.
+5. Nunca recomendar "continue aportando" quando a aritmética mostra que o fluxo não corrige. E nunca
+   mandar vender o ativo de maior cupom quando a tese declarada do investidor é queda de juros
+   (`references/fixed-income-brazil.md`).
 
 ## Passo 6 — Risco e concentração
 
@@ -101,7 +109,8 @@ Não pular etapas por falta de dado: registrar "não informado" e perguntar.
 - [ ] Está claro se os pesos são pré ou pós-aporte (deve ser pós, declarado).
 - [ ] Nenhum preço, yield ou alíquota foi inventado.
 - [ ] Cada posição aparece em um único sleeve; o que ficou fora está em `unmapped` com motivo.
+- [ ] ETF classificado pelo índice replicado, não pelo rótulo de mercado do extrato.
 - [ ] Todo desvio fora da banda tem uma leitura (aceitar, corrigir no fluxo, vender, rever política).
-- [ ] O teste estrutural foi rodado ou justificado.
+- [ ] O teste estrutural foi rodado ou justificado; se o sobrepeso é renda fixa, a escada de vencimentos também.
 - [ ] O plano de aporte respeita ticket mínimo e soma o valor do aporte (ou declara o resíduo).
 - [ ] Há registro de decisão, próximos passos e próximo review.

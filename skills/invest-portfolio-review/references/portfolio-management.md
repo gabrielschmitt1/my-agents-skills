@@ -33,6 +33,24 @@ rever a política (ex.: assumir 35% em FIIs porque a renda mensal é objetivo) o
 com custo fiscal e de liquidez calculado. "Continue aportando" não é resposta quando a aritmética
 mostra que não fecha.
 
+### Quando o sleeve sobrepeso é a renda fixa
+
+O teste acima é pessimista nesse caso: ele supõe o sleeve congelado. Títulos vencem, e **vencimento é
+rebalanceamento sem venda, sem IR antecipado e sem spread** — o dinheiro sai do sleeve sozinho.
+
+1. Rodar `python3 scripts/maturity_ladder.py state/portfolio.json --amount [aporte] --months 24`.
+2. Ler a escada por ano e o caminho do peso: com vencimentos, o K1 cai mais rápido que a diluição pura.
+3. Só então decidir entre **esperar** (fluxo + vencimentos), **vender** (com tamanho calculado) ou
+   **aceitar** o desvio.
+4. Uma carteira pode sair de 43% para 20% de renda fixa sem vender um papel, se a escada concentrar
+   vencimentos nos próximos 12–24 meses. Verificar antes de propor venda.
+5. Ao mesmo tempo, evitar o excesso oposto: se os vencimentos passarem do alvo, o sleeve fura o piso.
+   Quando o K1 chega ao alvo, volta a receber parte do fluxo (modo manutenção).
+
+O tamanho da venda, quando ela é necessária, tem fórmula fechada:
+`venda = (caixa − vencimentos no horizonte) − alvo × (total + aporte × meses)`.
+O script já devolve esse número; vender mais que isso obriga a recomprar RF depois.
+
 ## Priorização de aporte
 
 1. Ordenar por gravidade: fora da banda > distância até o alvo > valor em R$.
@@ -63,6 +81,19 @@ válida; o excesso não é. As demais são simétricas em torno do alvo.
 Considerar venda apenas quando: o fluxo não corrige em prazo razoável; a concentração é material;
 a tese do ativo se deteriorou; a necessidade de liquidez mudou; ou o benefício supera custo fiscal,
 corretagem e spread. Venda parcial é preferível a zerar posição por desvio de percentual.
+
+Antes de vender, esgotar nesta ordem: **vencimentos** (saem sem custo), **aportes** (diluem),
+**proventos** (redirecionar), e só então **venda**. Se a venda for o caminho:
+
+- Calcular o **tamanho** que leva o sleeve ao alvo no horizonte desejado — não vender "para baixar o
+  percentual". Vender a mais obriga a recomprar, possivelmente a preço pior.
+- Escolher **qual** ativo sai por carry líquido e prazo, não pela cor da tela
+  (`references/fixed-income-brazil.md`).
+- Declarar o custo: IR, spread, taxa contratada perdida, e o efeito no risco de crédito.
+- Registrar a venda como evento **de transição**, com data e critério. Sem isso, a carteira vira
+  negociação recorrente em vez de política.
+- Depois de corrigido o desvio, voltar ao modo manutenção: rebalancear por fluxo, vender só se um
+  sleeve furar a banda por dois trimestres consecutivos e o fluxo não corrigir em seis meses.
 
 ## Performance
 

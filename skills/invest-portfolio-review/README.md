@@ -88,6 +88,10 @@ python3 scripts/portfolio_allocation.py state/portfolio.json --no-contribution
 python3 scripts/rebalance_contribution.py state/portfolio.json --amount 5000
 python3 scripts/structural_drift.py state/portfolio.json --amount 5000
 
+# 2b) renda fixa: escada de vencimentos, carry líquido e tamanho da venda
+python3 scripts/maturity_ladder.py state/portfolio.json --amount 5000 --months 24
+python3 scripts/maturity_ladder.py state/portfolio.json --cdi 13.90 --inflation 4.50 --sell 12000
+
 # 3) testes
 python3 -m unittest discover -s tests
 ```
@@ -96,6 +100,10 @@ python3 -m unittest discover -s tests
 total, guarda o snapshot anterior em `state/history/` e mostra o diff por sleeve. Os demais scripts
 aceitam `sleeves` (valor por classe) ou `positions` (ativo a ativo) e nomes de sleeve em português.
 São apoio de cálculo: não decidem compra, venda ou adequação.
+
+`maturity_ladder.py` é a exceção: exige `positions` com `maturity`, `indexer`, `rate_pct` e
+`tax_exempt` por título de renda fixa, porque vencimento e indexador são propriedades do papel, não do
+sleeve. Taxas de referência entram por `--cdi`, `--selic` e `--inflation` — o script não inventa taxa.
 
 ## Privacidade
 

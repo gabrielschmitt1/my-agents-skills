@@ -64,8 +64,24 @@
       "name": "Tesouro Selic 2029",
       "group": "Renda Fixa",
       "primary_sleeve": "cash_fixed_income",
-      "market_value_brl": 40000,
+      "market_value_brl": 32000,
+      "maturity": "2029-03-01",
+      "indexer": "SELIC",
+      "rate_pct": 100,
+      "tax_exempt": false,
       "liquid": true
+    },
+    {
+      "symbol": "LCA-BANCO-EXEMPLO",
+      "name": "LCA Banco Exemplo 92% CDI",
+      "group": "Renda Fixa",
+      "primary_sleeve": "cash_fixed_income",
+      "market_value_brl": 8000,
+      "maturity": "2027-01-15",
+      "indexer": "CDI",
+      "rate_pct": 92,
+      "tax_exempt": true,
+      "liquid": false
     },
     {
       "symbol": "HGLG11",

@@ -123,7 +123,7 @@ emergência.
 4. **Classificação:** uma posição por sleeve; ouro, commodities, negócio próprio e alternativas vão
    para **D (Diversos)**.
 5. **Desvio:** rodar a alocação, comparar com alvo e banda, ordenar por gravidade.
-6. **Teste estrutural:** o fluxo de aporte corrige? Em quantos meses?
+6. **Teste estrutural:** o fluxo de aporte corrige? Em quantos meses? E os vencimentos de renda fixa?
 7. **Risco:** concentração, sobreposição, crédito, liquidez, câmbio, estresse e tributo (se houver venda).
 8. **Decisão:** plano de aporte ou veredito de compra, registro em `state/decisions.md`, próximo review.
 
@@ -140,6 +140,16 @@ Sleeve **abaixo** da banda: `gap = limite inferior × total − valor`; `meses �
 Acima de ~36 meses é **desvio estrutural**: a decisão é aceitar, rever a política ou vender parte.
 Nunca responder "continue aportando" quando a aritmética mostra que o fluxo não fecha.
 
+Quando o sleeve sobrepeso é **K1 (renda fixa)**, esse teste é pessimista: supõe o sleeve congelado.
+Títulos vencem e saem do sleeve sem venda, sem IR antecipado e sem spread. Rodar também
+`maturity_ladder.py`: se a escada concentra vencimentos nos próximos 12–24 meses, a correção é bem
+mais rápida do que a diluição sugere — e pode dispensar a venda. Ver `references/portfolio-management.md`.
+
+Quando a venda for necessária, o tamanho não é "o que falta": é
+`(caixa − vencimentos no horizonte) − alvo × (total + aporte × meses)`. O script devolve esse número;
+vender mais obriga a recomprar depois. Ver `references/fixed-income-brazil.md` para escolher **qual**
+título sai (carry líquido, isento x tributado, cupom mais baixo primeiro).
+
 ## Ferramentas
 
 Executar a partir da raiz da skill:
@@ -154,7 +164,11 @@ python3 scripts/portfolio_allocation.py state/portfolio.json --no-contribution  
 python3 scripts/rebalance_contribution.py state/portfolio.json --amount 5000
 python3 scripts/structural_drift.py state/portfolio.json --amount 5000
 
-# 3) testes dos cálculos
+# 3) renda fixa: escada de vencimentos, carry líquido e tamanho da venda
+python3 scripts/maturity_ladder.py state/portfolio.json --amount 5000 --months 24
+python3 scripts/maturity_ladder.py state/portfolio.json --cdi 13.90 --inflation 4.50 --sell 12000
+
+# 4) testes dos cálculos
 python3 -m unittest discover -s tests
 ```
 
@@ -164,6 +178,9 @@ python3 -m unittest discover -s tests
 - Aporte citado na conversa é **cenário**: use `--amount` no plano. Só grave `contribution_month_brl`
   se o dinheiro já estiver disponível e não investido; caso contrário, não infle o denominador.
 - Aceitam `sleeves` (valores por classe) ou `positions` (ativo a ativo); aceitam nomes em português.
+- `maturity_ladder.py` exige `maturity`, `indexer`, `rate_pct` e `tax_exempt` por título de renda fixa;
+  as taxas de referência (CDI, Selic, inflação) vêm de `--cdi`, `--selic` e `--inflation`. Sem elas, a
+  coluna líquida sai como `n/d` — o script não inventa taxa.
 - Os seis sleeves são sempre ativos. **D (Diversos)** é um sleeve normal: recebe aporte quando está
   abaixo do alvo, como qualquer outro.
 - Scripts são **apoio de cálculo**, não decisão: se o resultado conflitar com a análise, explicar a
@@ -243,7 +260,7 @@ Protocolo detalhado: `references/buy-decision.md`.
 | `references/brazil-tax-and-regulatory-checklist.md` | venda, realização, resgate, cripto, exterior |
 | `references/brazilian-equities.md` | ação ou BDR específico |
 | `references/real-estate-fiis.md` | FII específico |
-| `references/fixed-income-brazil.md` | CDB, LCI/LCA, Tesouro, fundo de RF |
+| `references/fixed-income-brazil.md` | CDB, LCI/LCA, Tesouro, fundo de RF — e qual vender primeiro |
 | `references/international-assets.md` | ETF exterior, BDR, ativo fora do Brasil |
 | `references/cryptoassets.md` | cripto direta, ETF de cripto, custódia |
 | `references/diversos.md` | sleeve D: ouro, commodities, negócio próprio, alternativas |

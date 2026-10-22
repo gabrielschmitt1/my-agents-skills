@@ -17,6 +17,16 @@ from portfolio_allocation import (  # noqa: E402
 )
 from rebalance_contribution import build_contribution_plan  # noqa: E402
 from structural_drift import drift_report  # noqa: E402
+from maturity_ladder import (  # noqa: E402
+    build_ladder,
+    load_fixed_income,
+    maturities_within,
+    month_buckets,
+    net_carry,
+    parse_maturity,
+    sale_to_hit_target,
+    simulate,
+)
 
 
 def portfolio_at_target(total: float = 100_000) -> dict[str, float]:
@@ -197,6 +207,145 @@ class DriftTests(unittest.TestCase):
         equities = next(row for row in report["rows"] if row["sleeve"] == "brazilian_equities")
         self.assertAlmostEqual(equities["gap"], 20_000, places=6)
         self.assertAlmostEqual(equities["months"], 20, places=6)
+
+
+def fixed_income_data() -> dict:
+    """Carteira mínima com vencimentos, incluindo um papel sem data."""
+    return {
+        "as_of": "2026-10-22",
+        "positions": [
+            {
+                "symbol": "LCA-92",
+                "primary_sleeve": "cash_fixed_income",
+                "market_value_brl": 10_000,
+                "maturity": "2026-12-01",
+                "indexer": "CDI",
+                "rate_pct": 92,
+                "tax_exempt": True,
+            },
+            {
+                "symbol": "CDB-PRE-14",
+                "primary_sleeve": "cash_fixed_income",
+                "market_value_brl": 20_000,
+                "maturity": "2027-10-04",
+                "indexer": "pré-fixado",
+                "rate_pct": 14.15,
+            },
+            {
+                "symbol": "CDB-IPCA-855",
+                "primary_sleeve": "cash_fixed_income",
+                "market_value_brl": 5_000,
+                "maturity": "2028-06-01",
+                "indexer": "IPCA+",
+                "rate_pct": 8.55,
+            },
+            {
+                "symbol": "RDB-LIQUIDEZ",
+                "primary_sleeve": "cash_fixed_income",
+                "market_value_brl": 2_000,
+            },
+            {"symbol": "FII-EXEMPLO", "primary_sleeve": "real_estate_fiis", "market_value_brl": 50_000},
+        ],
+    }
+
+
+class LadderTests(unittest.TestCase):
+    def test_ladder_groups_by_maturity_year(self) -> None:
+        items = load_fixed_income(fixed_income_data())
+        ladder = build_ladder(items)
+        self.assertAlmostEqual(ladder["total"], 37_000, places=2)
+        by_year = {row["year"]: row["value"] for row in ladder["rows"]}
+        self.assertAlmostEqual(by_year[2026], 10_000, places=2)
+        self.assertAlmostEqual(by_year[2027], 20_000, places=2)
+        self.assertAlmostEqual(by_year[2028], 5_000, places=2)
+        self.assertAlmostEqual(ladder["rows"][-1]["cumulative_pct"], (35_000 / 37_000) * 100, places=6)
+
+    def test_position_without_maturity_is_reported_not_silently_dropped(self) -> None:
+        ladder = build_ladder(load_fixed_income(fixed_income_data()))
+        self.assertAlmostEqual(ladder["undated"], 2_000, places=2)
+        self.assertAlmostEqual(ladder["total"], 37_000, places=2)
+
+    def test_horizon_boundary_maturity_counts_inside_the_window(self) -> None:
+        items = load_fixed_income(fixed_income_data())
+        reference = parse_maturity("2026-10-22")
+        # 2027-10-04 cai dentro de 12 meses de 2026-10-22: 10.000 + 20.000.
+        self.assertAlmostEqual(maturities_within(items, reference, 12), 30_000, places=2)
+        self.assertAlmostEqual(maturities_within(items, reference, 6), 10_000, places=2)
+
+    def test_month_bucket_puts_horizon_maturity_in_last_month(self) -> None:
+        items = load_fixed_income(fixed_income_data())
+        buckets = month_buckets(items, parse_maturity("2026-10-22"), 12)
+        self.assertAlmostEqual(buckets[1], 10_000, places=2)  # dez/2026 é o 2º mês
+        self.assertAlmostEqual(buckets[11], 20_000, places=2)  # out/2027 fecha o horizonte
+        self.assertEqual(sum(buckets.values()), 30_000)
+
+    def test_sale_sizing_lands_exactly_on_target(self) -> None:
+        values = {"cash_fixed_income": 100_000, "real_estate_fiis": 100_000}
+        sizing = sale_to_hit_target(values, 1_000, [], parse_maturity("2026-10-22"), 12, 0.20)
+        self.assertAlmostEqual(sizing["total_at_horizon"], 212_000, places=2)
+        self.assertAlmostEqual(sizing["target_value"], 42_400, places=2)
+        self.assertAlmostEqual(sizing["sale_brl"], 57_600, places=2)
+        self.assertFalse(sizing["already_enough"])
+
+    def test_sale_sizing_reports_when_flow_is_already_enough(self) -> None:
+        values = {"cash_fixed_income": 10_000, "real_estate_fiis": 100_000}
+        sizing = sale_to_hit_target(values, 0, [], parse_maturity("2026-10-22"), 12, 0.20)
+        self.assertTrue(sizing["already_enough"])
+        self.assertLess(sizing["sale_brl"], 0)
+
+    def test_simulation_dilutes_with_contribution_and_maturity(self) -> None:
+        values = {"cash_fixed_income": 100_000, "real_estate_fiis": 100_000}
+        items = [
+            {
+                "symbol": "X",
+                "value": 50_000,
+                "maturity": parse_maturity("2026-11-15"),
+                "indexer": "CDI",
+                "rate_pct": 100,
+                "tax_exempt": False,
+                "net_value": None,
+                "issuer": "",
+            }
+        ]
+        result = simulate(values, 10_000, items, parse_maturity("2026-10-22"), 6)
+        # mês 1: sai 50.000 do caixa e entra 10.000 de aporte.
+        self.assertAlmostEqual(result["path"][0]["cash_value"], 50_000, places=2)
+        self.assertAlmostEqual(result["path"][0]["total"], 210_000, places=2)
+        self.assertAlmostEqual(result["path"][-1]["weight_pct"], 50_000 / 260_000 * 100, places=6)
+
+    def test_net_carry_compares_isento_with_taxed(self) -> None:
+        items = {item["symbol"]: item for item in load_fixed_income(fixed_income_data())}
+        lca, _ = net_carry(items["LCA-92"], cdi=13.90)
+        prefixado, _ = net_carry(items["CDB-PRE-14"], cdi=13.90, ir_pct=15)
+        self.assertAlmostEqual(lca, 92 / 100 * 13.90, places=6)
+        self.assertAlmostEqual(prefixado, 14.15 * 0.85, places=6)
+        # 92% do CDI isento (12,79%) rende mais que 14,15% tributado (12,03%).
+        self.assertGreater(lca, prefixado)
+
+    def test_ipca_needs_explicit_inflation(self) -> None:
+        items = {item["symbol"]: item for item in load_fixed_income(fixed_income_data())}
+        net, reason = net_carry(items["CDB-IPCA-855"], cdi=13.90)
+        self.assertIsNone(net)
+        self.assertIn("inflation", reason)
+        net, reason = net_carry(items["CDB-IPCA-855"], cdi=13.90, inflation=4.5)
+        self.assertIsNone(reason)
+        self.assertAlmostEqual(net, ((1.0855 * 1.045) - 1) * 100 * 0.85, places=6)
+
+    def test_unknown_indexer_raises(self) -> None:
+        data = fixed_income_data()
+        data["positions"][0]["indexer"] = "TR"
+        with self.assertRaises(ValueError):
+            load_fixed_income(data)
+
+    def test_invalid_maturity_raises(self) -> None:
+        data = fixed_income_data()
+        data["positions"][0]["maturity"] = "31/12/2026"
+        with self.assertRaises(ValueError):
+            load_fixed_income(data)
+
+    def test_sleeves_only_input_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            load_fixed_income({"sleeves": {"caixa": 1000}})
 
 
 if __name__ == "__main__":

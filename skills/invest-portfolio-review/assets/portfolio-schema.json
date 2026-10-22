@@ -1,6 +1,7 @@
 {
   "_semantica": "positions guarda o que JA esta investido na data as_of, pelo saldo BRUTO (valor de mercado). net_value_brl, quando existir, e o saldo liquido para resgate. contribution_month_brl e o aporte do mes ainda NAO investido; os scripts somam ao caixa para calcular pesos pos-aporte. Depois de investir, zere o campo e atualize as posicoes. Diversos (D) e o sleeve de ouro, commodities, negocio proprio, private equity e alternativas.",
   "_como_gravar": "Nao edite este arquivo a mao. O investidor cola o extrato e a skill grava com scripts/save_portfolio.py, que valida, reconcilia o total e faz backup.",
+  "_vencimentos": "Posicoes de cash_fixed_income DEVEM trazer 'maturity' (YYYY-MM-DD), 'indexer' (CDI/SELIC/PRE/IPCA), 'rate_pct' (92 = 92% do CDI; 14.15 = 14,15% a.a.; 8.55 = IPCA+8,55) e 'tax_exempt' (LCA/LCI/CRI/CRA). Sem esses campos a escada de vencimentos de scripts/maturity_ladder.py nao roda, e vencimento e o principal mecanismo de rebalanceamento do sleeve K1.",
   "schema_version": "4.0",
   "as_of": "YYYY-MM-DD",
   "updated_at": "YYYY-MM-DDTHH:MM:SS",
@@ -72,6 +73,10 @@
       "net_value_brl": null,
       "cost_basis_brl": 0,
       "income_brl": 0,
+      "maturity": "YYYY-MM-DD",
+      "indexer": "CDI | SELIC | PRE | IPCA",
+      "rate_pct": 0,
+      "tax_exempt": false,
       "liquid": true,
       "notes": "Cada posição em UM sleeve primário. Exposição secundária vai em notes."
     }

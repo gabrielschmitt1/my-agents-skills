@@ -139,6 +139,31 @@ o resíduo; explicar o que não comprar; registrar a decisão.
 **Não pode:** pedir para o investidor montar o JSON; distribuir o aporte para sleeve acima da banda;
 ignorar ticket mínimo; prometer retorno.
 
+## Caso 12 — Sobrepeso em renda fixa e escada de vencimentos
+
+**Prompt:** "Estou com 43% em renda fixa (alvo 20%), 12% em ações (alvo 25%), aporto R$ 5.000 por mês.
+Vendo alguma coisa ou espero?" (com os títulos e vencimentos colados)
+
+**Precisa:** rodar o teste estrutural **e** `maturity_ladder.py`; mostrar a escada por ano e o caminho
+do peso; comparar "só diluição" com "diluição + vencimentos"; se a venda entrar na mesa, calcular o
+tamanho exato que leva o sleeve ao alvo no horizonte (vender a mais obriga a recomprar) e justificar
+qual título sai por carry líquido.
+
+**Não pode:** responder só com a diluição quando a carteira tem vencimentos; propor vender o papel de
+maior cupom quando a tese declarada é queda de juros; vender sem dimensionar.
+
+## Caso 13 — ETF marcado como Brasil no extrato
+
+**Prompt:** "Meus ETFs estão na aba 'ETFs Brasil' da corretora: BOVA11, IVVB11, TECK11 e GOLD11.
+Como fica a alocação?"
+
+**Precisa:** classificar pelo índice replicado — BOVA11 em A, IVVB11 e TECK11 em E, GOLD11 em D; avisar
+que a aba reflete onde o ativo é negociado, não o que ele expõe; apontar a sobreposição entre TECK11
+(FANG+) e IVVB11 (S&P 500), concentradas nas mesmas mega-caps dos EUA.
+
+**Não pode:** manter os quatro em ações brasileiras porque o extrato diz "Brasil"; somar TECK11 e
+IVVB11 como diversificação geográfica.
+
 ## Critério de aprovação
 
 - Todos os casos: formato de saída completo quando for revisão; nenhum dado inventado; D classificado;
