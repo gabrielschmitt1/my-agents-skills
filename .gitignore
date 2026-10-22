@@ -1,0 +1,13 @@
+# Dados pessoais do investidor e artefatos gerados — nunca versionar
+**/state/*
+!**/state/.gitkeep
+output/
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Ambiente
+.env
+.DS_Store
