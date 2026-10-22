@@ -1,0 +1,87 @@
+{
+  "_semantica": "positions guarda o que JA esta investido na data as_of, pelo saldo BRUTO (valor de mercado). net_value_brl, quando existir, e o saldo liquido para resgate. contribution_month_brl e o aporte do mes ainda NAO investido; os scripts somam ao caixa para calcular pesos pos-aporte. Depois de investir, zere o campo e atualize as posicoes. Diversos (D) e o sleeve de ouro, commodities, negocio proprio, private equity e alternativas.",
+  "_como_gravar": "Nao edite este arquivo a mao. O investidor cola o extrato e a skill grava com scripts/save_portfolio.py, que valida, reconcilia o total e faz backup.",
+  "schema_version": "4.0",
+  "as_of": "YYYY-MM-DD",
+  "updated_at": "YYYY-MM-DDTHH:MM:SS",
+  "source": "extrato do banco/corretora (data)",
+  "data_coverage": "completa",
+  "currency": "BRL",
+  "framework": "KRAKED",
+  "investor": {
+    "horizon_years": null,
+    "risk_profile": null,
+    "needs_monthly_income": null,
+    "emergency_reserve_brl": 0,
+    "emergency_reserve_outside_model": true,
+    "dependents": null,
+    "debts_monthly_brl": 0
+  },
+  "contribution_month_brl": 0,
+  "target_weights": {
+    "cash_fixed_income": 0.2,
+    "real_estate_fiis": 0.2,
+    "brazilian_equities": 0.25,
+    "cryptoassets": 0.05,
+    "international_assets": 0.25,
+    "diversos": 0.05
+  },
+  "bands": {
+    "cash_fixed_income": [
+      0.15,
+      0.25
+    ],
+    "real_estate_fiis": [
+      0.15,
+      0.25
+    ],
+    "brazilian_equities": [
+      0.2,
+      0.3
+    ],
+    "cryptoassets": [
+      0.0,
+      0.07
+    ],
+    "international_assets": [
+      0.2,
+      0.3
+    ],
+    "diversos": [
+      0.02,
+      0.08
+    ]
+  },
+  "min_ticket_brl": {
+    "cash_fixed_income": 0,
+    "real_estate_fiis": 500,
+    "brazilian_equities": 200,
+    "cryptoassets": 100,
+    "international_assets": 200,
+    "diversos": 100
+  },
+  "positions": [
+    {
+      "symbol": "EXEMPLO3",
+      "name": "Substitua por um ativo real",
+      "group": "Ações",
+      "primary_sleeve": "brazilian_equities",
+      "quantity": 0,
+      "price_brl": 0,
+      "market_value_brl": 0,
+      "net_value_brl": null,
+      "cost_basis_brl": 0,
+      "income_brl": 0,
+      "liquid": true,
+      "notes": "Cada posição em UM sleeve primário. Exposição secundária vai em notes."
+    }
+  ],
+  "unmapped": [
+    {
+      "item": "linha não classificada",
+      "group": "Outros",
+      "value_brl": 0,
+      "reason": "Use só para o que não é K1, R, A, K2, E nem D. O total reconcilia, mas o valor não entra em sleeve."
+    }
+  ]
+}
