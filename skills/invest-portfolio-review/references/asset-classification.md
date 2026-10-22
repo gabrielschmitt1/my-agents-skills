@@ -20,6 +20,10 @@ Variável" no extrato costuma juntar ações, ETFs de índices diferentes, ouro 
 
 ## Tabela de referência (confirmar quando material)
 
+**Não confie no rótulo de mercado do extrato.** Corretoras marcam "BRA" ou "B3" para *onde o ativo é
+negociado*, não para o que ele expõe. TECK11 negocia na B3 e é 100% exterior; GOLD11 negocia na B3 e é
+commodity. O que define o sleeve é o índice ou a cesta replicada, não a bolsa nem a aba.
+
 | Ticker | Nome típico | Sleeve | Observação |
 |---|---|---|---|
 | BBOV11 | BB ETF Ibovespa | A | Mesmo índice do BOVA11 → sobreposição |
@@ -27,7 +31,7 @@ Variável" no extrato costuma juntar ações, ETFs de índices diferentes, ouro 
 | DIVD11 | IT Now IDIV | A | Índice de dividendos; sobrepõe ações BR |
 | IVVB11 | iShares S&P 500 | E | Exposição cambial embutida |
 | GOLD11 | Trend Ouro | D | Commodity/ouro; não é ação nem exterior |
-| TECK11 | IT Now Tech | **confirmar** | Verificar se a cesta é BR ou exterior antes de classificar |
+| TECK11 | Itaú NYSE FANG+ | **E** | Replica as 10 big techs dos EUA, com variação cambial. Não é ação brasileira |
 | BTLG11 | BTG Logística | R | Tijolo/logística |
 | BTLG12 | BTG Logística (classe residual) | R | Saldo irrelevante: marcar "residual" |
 | HGBS11 | Hedge Brasil Shopping | R | Shoppings |
@@ -58,6 +62,8 @@ informe mensal do fundo ou o regulamento do ETF (`data-sources.md`).
 - **FII de papel x renda fixa:** KNCR11, RECR11, MXRF11 e IRIM11 têm risco de crédito parecido com
   CDB/CRI. Contar os dois no mesmo saco para medir exposição a crédito.
 - **ETF x ações:** um ETF de Ibovespa já contém as ações que você tem na carteira.
+- **TECK11 x IVVB11:** as 10 big techs do FANG+ são o topo do S&P 500. Quem tem os dois mede
+  concentração em mega-cap dos EUA, não diversificação geográfica.
 - **Aluguel de ações:** a posição continua sua, mas com risco de contraparte e devolução. Anotar.
 
 ## Diversos (D)
