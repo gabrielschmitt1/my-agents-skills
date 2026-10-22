@@ -9,6 +9,7 @@ copiado para outro lugar sem depender de arquivos fora da própria pasta.
 skills/<skill>/          # capacidades reutilizáveis (métodos, ferramentas, workflows)
 agents/<agent>/          # personas e orquestradores com identidade própria
 tools/                   # validação do repositório
+docs/                    # documentação compartilhada
 AGENTS.md                # estas convenções
 README.md                # índice
 ```
