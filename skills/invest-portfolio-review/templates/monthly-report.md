@@ -17,22 +17,22 @@
 
 ## 2. Snapshot
 
-- **Total investido nos seis sleeves (pós-aporte):** R$ [ ]
-- **Fora dos sleeves (`unmapped`, ex.: linha não classificada):** R$ [ ] — [motivo]
+- **Total investido nas seis classes (pós-aporte):** R$ [ ]
+- **Fora das classes (`unmapped`, ex.: linha não classificada):** R$ [ ] — [motivo]
 - **Aporte/retirada do mês:** R$ [ ] (entrada: [data])
 - **Qualidade dos dados:** [alta | média | baixa] — critério usado: [ ]
 - **Ativos sem cotação atual:** [lista ou "nenhum"]
 
 | Classe | Valor (R$) | Peso | Alvo | Desvio | Gap (R$) | Banda | Situação |
 |---|---:|---:|---:|---:|---:|---|---|
-| Caixa / RF (K1) | | | 20% | | | 15–25% | |
-| FIIs (R) | | | 20% | | | 15–25% | |
-| Ações BR (A) | | | 25% | | | 20–30% | |
-| Cripto (K2) | | | 5% | | | 0–7% | |
+| Renda Fixa e Caixa (K1) | | | 20% | | | 15–25% | |
+| Fundos Imobiliários (R) | | | 20% | | | 15–25% | |
+| Ações Brasil (A) | | | 25% | | | 20–30% | |
+| Criptoativos (K2) | | | 5% | | | 0–7% | |
 | Exterior (E) | | | 25% | | | 20–30% | |
 | Diversos (D) | | | 5% | | | 2–8% | |
 
-> Gap negativo = acima do alvo; positivo = falta para o alvo. Os seis sleeves são sempre ativos; D é o
+> Gap negativo = acima do alvo; positivo = falta para o alvo. As seis classes são sempre ativas; D é o
 > catch-all (ouro, commodities, negócio próprio, alternativas) e não há renormalização.
 
 ## 3. Mudanças desde o último review
@@ -40,7 +40,7 @@
 - Aportes/retiradas: [ ]
 - Ativos comprados/vendidos: [ ]
 - Mudanças de preço relevantes (>10%): [ ]
-- Sleeves que cruzaram banda: [ ]
+- Classes que cruzaram a banda: [ ]
 - Decisões anteriores que venceram ou foram invalidadas: [ ]
 
 ## 4. Teste de desvio estrutural
@@ -56,8 +56,8 @@
 ## 5. Riscos
 
 - Concentração por ativo/setor: [ ]
-- Sobreposição entre sleeves (ETF x ações, BDR x exterior, FII de papel x RF): [ ]
-- Crédito/emissor (RF, FII de papel): [ ]
+- Sobreposição entre classes (ETF x ações, BDR x exterior, Fundo Imobiliário de papel x Renda Fixa): [ ]
+- Crédito/emissor (Renda Fixa, Fundo Imobiliário de papel): [ ]
 - Liquidez e reserva de emergência: [ ]
 - Câmbio: [ ]
 - Tributário (só com fonte verificada na data): [ ]
@@ -81,7 +81,7 @@
 - V_início (data): R$ [ ] | V_fim (data): R$ [ ] | Aportes líquidos: R$ [ ]
 - Benchmarks: CDI [ ]%, Ibovespa [ ]%, IFIX [ ]%, S&P 500 em BRL [ ]%
 - Primeiro review sem snapshot anterior: "não calculável" (não estimar).
-- Ressalva: [ ] meses é prazo curto para julgar a estratégia; comparar sleeves em janelas equivalentes.
+- Ressalva: [ ] meses é prazo curto para julgar a estratégia; comparar classes em janelas equivalentes.
 
 ## 8. Decisão registrada
 
@@ -100,8 +100,8 @@
 
 ## 10. Decisão de compra (se houver)
 
-- **Ativo e sleeve:** [ ]
-- **Peso atual do sleeve / alvo / banda:** [ ] / [ ] / [ ]
+- **Ativo e classe:** [ ]
+- **Peso atual da classe / alvo / banda:** [ ] / [ ] / [ ]
 - **Sobreposição com o que já tenho:** [ ]
 - **Preço e valuation (fonte + data):** [ ]
 - **Tamanho, ticket e liquidez:** [ ]

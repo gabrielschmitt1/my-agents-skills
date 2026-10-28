@@ -31,8 +31,8 @@ TARGETS: dict[str, float] = {
 }
 
 LABELS: dict[str, str] = {
-    "cash_fixed_income": "Caixa / Renda fixa (K1)",
-    "real_estate_fiis": "FIIs / Imóveis (R)",
+    "cash_fixed_income": "Renda Fixa e Caixa (K1)",
+    "real_estate_fiis": "Fundos Imobiliários (R)",
     "brazilian_equities": "Ações Brasil (A)",
     "cryptoassets": "Criptoativos (K2)",
     "international_assets": "Exterior (E)",

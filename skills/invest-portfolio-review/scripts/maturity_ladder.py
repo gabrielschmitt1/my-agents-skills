@@ -330,7 +330,7 @@ def format_ladder(ladder: dict) -> str:
     lines = [
         f"Renda fixa na data de referência: R$ {brl(total)}",
         "",
-        "| Ano | Vence (R$) | % da RF | Acumulado |",
+        "| Ano | Vence (R$) | % da Renda Fixa | Acumulado |",
         "|---|---:|---:|---:|",
     ]
     for row in ladder["rows"]:
@@ -341,7 +341,7 @@ def format_ladder(ladder: dict) -> str:
     if ladder["undated"]:
         lines.append(
             f"\nSem vencimento informado: **R$ {brl(ladder['undated'])}** "
-            f"({pct(ladder['undated'] / total * 100 if total else 0.0)}% da RF) — "
+            f"({pct(ladder['undated'] / total * 100 if total else 0.0)}% da Renda Fixa) — "
             "pedir a data ou marcar como liquidez diária."
         )
     return "\n".join(lines)
@@ -484,7 +484,7 @@ def main(argv: list[str] | None = None) -> int:
               f"R$ {brl(sizing['target_value'])}.")
     print(
         "\nPremissas: preços constantes, sem marcação a mercado, aporte recorrente, "
-        "nenhum reinvestimento em RF enquanto o caixa estiver acima do alvo."
+        "nenhum reinvestimento em Renda Fixa enquanto o caixa estiver acima do alvo."
     )
     return 0
 

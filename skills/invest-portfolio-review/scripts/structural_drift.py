@@ -106,7 +106,7 @@ def format_report(report: dict) -> str:
     ]
     if over:
         lines.append(
-            "\nSleeves que não fecham a banda em 3 anos nem com 100% do aporte: "
+            "\nClasses que não fecham a banda em 3 anos nem com 100% do aporte: "
             + ", ".join(r["label"] for r in over)
             + ". O fluxo não resolve sozinho: decidir entre aceitar o desvio ou rever a política."
         )

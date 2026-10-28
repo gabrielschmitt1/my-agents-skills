@@ -19,6 +19,37 @@ metadata:
 - Preferir resposta útil com premissas marcadas a resposta vazia por falta de dado. Nunca inventar preço,
   quantidade, alíquota ou total.
 
+## Linguagem: escrever para quem não é do mercado
+
+O investidor não precisa aprender o jargão da skill. Regras de redação do relatório:
+
+1. **Nunca usar "sleeve" na resposta.** O conceito é **classe de ativo** (ou só "classe"). Internamente o
+   código chama de sleeve; para o investidor, é classe.
+2. **Nomear a classe por extenso**, sempre com a letra entre parênteses só na primeira menção:
+   Renda Fixa (K1), Fundos Imobiliários (R), Ações Brasil (A), Criptoativos (K2), Exterior (E),
+   Diversos (D).
+3. **Sem siglas soltas.** "RF" → Renda Fixa; "RV" → Renda Variável; "FII" → Fundo Imobiliário;
+   "p.p." → pontos percentuais; "CDI" → CDI (é nome próprio, pode); "IPCA+" → IPCA + taxa.
+4. **Ativo pelo nome completo, não pelo código.** "CDB Banco Fibra IPCA + 8,70% de out/2027", depois
+   `(CDB-FIBRA-IPCA-2027-10)` se precisar do código. Ticker sozinho só quando for o nome comercial
+   conhecido (BOVA11, MXRF11).
+5. **Cada número com sua unidade e sua leitura**: "38,7% (R$ 98.916,78)" e não só o percentual.
+6. **Glossário curto no fim do primeiro relatório** de cada investidor, para os termos que aparecerem:
+   classe de ativo, alvo, banda, desvio em pontos percentuais, gap, denominador, aporte, rebalanceamento,
+   vencimento, ticket mínimo, saldo bruto x líquido, desvio estrutural.
+
+| Termo técnico | Como dizer para o investidor |
+|---|---|
+| sleeve | classe de ativo (ou só "classe") |
+| target / alvo | quanto a política manda ter |
+| banda (15–25%) | faixa de tolerância; sair dela pede análise, não trade automático |
+| desvio em p.p. | quantos pontos percentuais está acima/abaixo do alvo |
+| gap (R$) | quanto falta (ou sobra) em reais para chegar ao alvo |
+| denominador | o patrimônio total usado na conta |
+| desvio estrutural | quando o aporte mensal não corrige o desvio em ~3 anos |
+| carry | rentabilidade líquida de carregar o título |
+| ticket mínimo | valor mínimo de compra que faz sentido naquele ativo |
+
 ## Modos de uso
 
 1. **Alocação:** o investidor cola os dados (extrato, posições, print transcrito) e pede "como está minha
