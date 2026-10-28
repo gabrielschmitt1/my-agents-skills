@@ -20,6 +20,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from maturity_ladder import normalize_indexer, parse_bool, parse_maturity
 from portfolio_allocation import (
     BANDS,
     TARGETS,
@@ -104,19 +105,53 @@ def _normalize_position(raw: dict, index: int) -> dict:
             if raw.get("income_brl") is not None
             else 0.0
         ),
+        "maturity": _optional_maturity(raw.get("maturity"), symbol),
+        "indexer": _optional_indexer(raw.get("indexer"), symbol),
+        "rate_pct": (
+            _number(raw["rate_pct"], f"positions[{index}].rate_pct")
+            if raw.get("rate_pct") is not None
+            else None
+        ),
+        "tax_exempt": _optional_bool(raw.get("tax_exempt"), symbol),
         "liquid": bool(raw.get("liquid", True)),
         "notes": str(raw.get("notes") or "").strip(),
     }
+
+
+def _optional_maturity(raw: object, symbol: str) -> str | None:
+    """Vencimento em ISO (YYYY-MM-DD). Sem data, a posição fica fora da escada."""
+    try:
+        parsed = parse_maturity(raw)
+    except ValueError as exc:
+        raise IngestError(f"{symbol}: {exc}") from exc
+    return parsed.isoformat() if parsed else None
+
+
+def _optional_indexer(raw: object, symbol: str) -> str | None:
+    """Indexador normalizado para CDI, SELIC, PRE ou IPCA."""
+    try:
+        return normalize_indexer(raw)
+    except ValueError as exc:
+        raise IngestError(f"{symbol}: {exc}") from exc
+
+
+def _optional_bool(raw: object, symbol: str) -> bool:
+    """Isenção tributária (LCA/LCI/CRI/CRA). Ausente = não isento."""
+    try:
+        return parse_bool(raw)
+    except ValueError as exc:
+        raise IngestError(f"{symbol}: {exc}") from exc
 
 
 def normalize_positions(raw_positions: list) -> list[dict]:
     if not isinstance(raw_positions, list) or not raw_positions:
         raise IngestError("'positions' deve ser uma lista com pelo menos uma posição.")
 
-    merged: dict[str, dict] = {}
+    merged: dict[tuple[str, str], dict] = {}
     for index, raw in enumerate(raw_positions):
         position = _normalize_position(raw, index)
-        key = position["symbol"]
+        # Mesmo ticker com vencimentos diferentes são títulos distintos: não somar.
+        key = (position["symbol"], position["maturity"] or "")
         if key in merged:
             existing = merged[key]
             existing["market_value_brl"] = round(
@@ -309,6 +344,11 @@ def save_portfolio(
                     f"{position['symbol']}: saldo informado R$ {brl(position['market_value_brl'])} "
                     f"difere de quantidade × preço (R$ {brl(calculated)})."
                 )
+        if position["primary_sleeve"] == "cash_fixed_income" and position["maturity"] is None:
+            warnings.append(
+                f"{position['symbol']}: renda fixa sem 'maturity'. O título fica fora da escada "
+                "de vencimentos, que é o principal mecanismo de rebalanceamento do caixa."
+            )
         if position["market_value_brl"] < 1.0:
             warnings.append(f"{position['symbol']}: posição residual (< R$ 1,00).")
         if (
@@ -428,14 +468,14 @@ def format_summary(result: dict) -> str:
         lines.append(f"Total do extrato: R$ {brl(result['expected_total'])} (reconciliado)")
 
     lines.append("")
-    lines.append("| Sleeve | Antes (R$) | Depois (R$) | Δ (R$) |")
+    lines.append("| Classe | Antes (R$) | Depois (R$) | Δ (R$) |")
     lines.append("|---|---:|---:|---:|")
     before = result["before_totals"] or {}
     for sleeve, label in (
-        ("cash_fixed_income", "Caixa / RF (K1)"),
-        ("real_estate_fiis", "FIIs (R)"),
-        ("brazilian_equities", "Ações BR (A)"),
-        ("cryptoassets", "Cripto (K2)"),
+        ("cash_fixed_income", "Renda Fixa e Caixa (K1)"),
+        ("real_estate_fiis", "Fundos Imobiliários (R)"),
+        ("brazilian_equities", "Ações Brasil (A)"),
+        ("cryptoassets", "Criptoativos (K2)"),
         ("international_assets", "Exterior (E)"),
         ("diversos", "Diversos (D)"),
     ):

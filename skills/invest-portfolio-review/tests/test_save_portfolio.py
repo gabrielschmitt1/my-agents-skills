@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 from save_portfolio import IngestError, save_portfolio  # noqa: E402
+from maturity_ladder import build_ladder, load_fixed_income  # noqa: E402
 
 
 def base_data(**overrides):
@@ -197,6 +198,84 @@ class SavePortfolioTest(unittest.TestCase):
         data["positions"][1]["market_value_brl"] = 0.02
         result = self.save(data)
         self.assertTrue(any("residual" in w for w in result["warnings"]))
+
+    def test_preserva_metadados_de_renda_fixa(self):
+        data = base_data()
+        data["positions"][2].update(
+            {
+                "maturity": "2027-10-04",
+                "indexer": "pré-fixado",
+                "rate_pct": 14.15,
+                "tax_exempt": False,
+            }
+        )
+        self.save(data, expected_total=6000.0)
+        saved = json.loads(self.state.read_text(encoding="utf-8"))
+        cdb = [p for p in saved["positions"] if p["symbol"] == "CDB-XP"][0]
+        self.assertEqual(cdb["maturity"], "2027-10-04")
+        self.assertEqual(cdb["indexer"], "PRE")
+        self.assertEqual(cdb["rate_pct"], 14.15)
+        self.assertFalse(cdb["tax_exempt"])
+
+    def test_escada_roda_no_estado_gravado(self):
+        """Regressão: a escada precisa ler os metadados do próprio state."""
+        data = base_data()
+        data["positions"][2].update(
+            {
+                "maturity": "2026-12-01",
+                "indexer": "CDI",
+                "rate_pct": 92,
+                "tax_exempt": True,
+            }
+        )
+        self.save(data, expected_total=6000.0)
+        saved = json.loads(self.state.read_text(encoding="utf-8"))
+        fixed_income = load_fixed_income(saved)
+        self.assertEqual(len(fixed_income), 1)
+        self.assertEqual(fixed_income[0]["maturity"].isoformat(), "2026-12-01")
+        self.assertEqual(build_ladder(fixed_income)["undated"], 0.0)
+
+    def test_renda_fixa_sem_vencimento_avisa(self):
+        data = base_data()
+        data["positions"][2].update({"indexer": "CDI", "rate_pct": 92})
+        result = self.save(data, expected_total=6000.0)
+        self.assertTrue(any("sem 'maturity'" in w for w in result["warnings"]))
+
+    def test_indexador_invalido_rejeitado(self):
+        data = base_data()
+        data["positions"][2]["indexer"] = "TR"
+        with self.assertRaises(IngestError) as ctx:
+            self.save(data, expected_total=6000.0)
+        self.assertIn("Indexador desconhecido", str(ctx.exception))
+
+    def test_mesmo_ticker_com_vencimentos_diferentes_nao_soma(self):
+        data = base_data()
+        data["positions"] = [
+            {
+                "symbol": "CDB-OMNI",
+                "name": "Omni",
+                "primary_sleeve": "caixa",
+                "market_value_brl": 1000.0,
+                "maturity": "2027-10-04",
+                "indexer": "PRE",
+                "rate_pct": 14.65,
+            },
+            {
+                "symbol": "CDB-OMNI",
+                "name": "Omni",
+                "primary_sleeve": "caixa",
+                "market_value_brl": 2000.0,
+                "maturity": "2028-10-02",
+                "indexer": "PRE",
+                "rate_pct": 14.38,
+            },
+        ]
+        result = self.save(data, expected_total=3000.0)
+        saved = json.loads(self.state.read_text(encoding="utf-8"))
+        self.assertEqual(result["position_count"], 2)
+        self.assertEqual(
+            len({p["maturity"] for p in saved["positions"]}), 2
+        )
 
 
 if __name__ == "__main__":
